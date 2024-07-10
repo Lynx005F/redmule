@@ -28,11 +28,12 @@ module redmule_streamer
   import hci_package::*;
   import hwpe_stream_package::*;
 #(
-parameter  int unsigned DW        = 288   ,
-parameter  int unsigned AW        = ADDR_W,
-localparam int unsigned REALIGN   = 1     ,
-parameter  bit SERIAL_REPLICATION = 0     , // Serial error detection on the Output
-parameter  bit REDUCED_DATAPATH   = 0     , // Only do W datapath and all control signals
+parameter  int unsigned DW           = 288   ,
+parameter  int unsigned AW           = ADDR_W,
+localparam int unsigned REALIGN      = 1     ,
+parameter  bit SERIAL_REPLICATION    = 0     , // Serial error detection on the Output
+parameter  bit REDUCED_DATAPATH      = 0     , // Only do W datapath and all control signals
+parameter  bit REQUEST_DEDUPLICATION = 1     , // Deduplicate adjacent requests to same adress
 parameter hci_size_parameter_t `HCI_SIZE_PARAM(tcdm) = '0
 )(
   input logic                    clk_i,
@@ -62,6 +63,33 @@ parameter hci_size_parameter_t `HCI_SIZE_PARAM(tcdm) = '0
 localparam int unsigned UW  = `HCI_SIZE_GET_UW(tcdm);
 localparam int unsigned EW  = `HCI_SIZE_GET_EW(tcdm);
 
+/***************************** Store Deduplication Cache ********************************/
+/* If the interface from the cores has data ECC, we decode it here. All further error   *
+ * protection is in time or with parity bits                                            */
+
+hci_core_intf #(
+`ifndef SYNTHESIS
+  .WAIVE_RSP3_ASSERT ( 1'b1 ), // waive RSP-3 on memory-side of HCI FIFO
+  .WAIVE_RSP5_ASSERT ( 1'b1 ),  // waive RSP-5 on memory-side of HCI FIFO
+`endif
+  .DW ( DW ),
+  .UW ( UW ),
+  .EW ( EW )
+) tcdm_dupl ( .clk ( clk_i ) );
+
+if (REQUEST_DEDUPLICATION) begin: gen_deduplicator
+  redmule_deduplicator #( 
+    .`HCI_SIZE_PARAM(tcdm) ( `HCI_SIZE_PARAM(tcdm)        )
+  ) i_deduplicator (
+     .clk_i,
+     .rst_ni,
+    .tcdm_target         ( tcdm_dupl ),
+    .tcdm_initiator      ( tcdm )
+);
+end else begin: gen_no_deduplication
+  hci_core_assign i_ldst_assign ( .tcdm_target (tcdm_dupl), .tcdm_initiator (tcdm) );
+end
+
 /*************************** Store Channel: Serial Detection ****************************/
 /* In redundant modes, every element is fetched and stored twice, after the whole       *
  * it arrives here and we check that the two elements still are the same.               *
@@ -73,8 +101,8 @@ if (SERIAL_REPLICATION) begin: gen_serial_fault_detection
   logic same_d, same_q;
   logic data_transmitted;
 
-  assign data_transmitted = tcdm.req && tcdm.gnt && !tcdm.wen;
-  assign data_out_d[DW-1:0] = tcdm.data;
+  assign data_transmitted = tcdm_dupl.req && tcdm_dupl.gnt && !tcdm_dupl.wen;
+  assign data_out_d[DW-1:0] = tcdm_dupl.data;
 
   `FFL(data_out_q, data_out_d, data_transmitted, '0);
 
@@ -88,8 +116,6 @@ end else begin: gen_no_serial_fault_detection
   // Since we want to be able to have a configuration where only serial detection is done
   // We default to 0 here (Otherwise disabled redundancy -> assert fault for safety).
 end
-
-// TODO: Add Load / Store deduplication here
 
 /************************************** ECC Stage **************************************/
 /* If the interface from the cores has data ECC, we decode it here. All further error  *
@@ -141,8 +167,8 @@ if (EW > 1 && !REDUCED_DATAPATH) begin : gen_ecc_encoder
     .r_data_multi_err_o  ( data_multi_err  ),
     .r_meta_single_err_o ( meta_single_err ),
     .r_meta_multi_err_o  ( meta_multi_err  ),
-    .tcdm_target         ( ldst_tcdm[0]                 ),
-    .tcdm_initiator      ( tcdm                         )
+    .tcdm_target         ( ldst_tcdm[0]    ),
+    .tcdm_initiator      ( tcdm_dupl       )
   );
 
   assign ecc_errors_o.data_single_err = data_single_err & {ECC_N_CHUNK{tcdm.r_valid}};
@@ -150,7 +176,7 @@ if (EW > 1 && !REDUCED_DATAPATH) begin : gen_ecc_encoder
   assign ecc_errors_o.meta_single_err = meta_single_err & (tcdm.req & tcdm.gnt);
   assign ecc_errors_o.meta_multi_err  = meta_multi_err  & (tcdm.req & tcdm.gnt);
 end else begin : gen_ldst_assign
-  hci_core_assign i_ldst_assign ( .tcdm_target (ldst_tcdm [0]), .tcdm_initiator (tcdm) );
+  hci_core_assign i_ldst_assign ( .tcdm_target (ldst_tcdm [0]), .tcdm_initiator (tcdm_dupl) );
   assign ecc_errors_o = '0;
 end
 

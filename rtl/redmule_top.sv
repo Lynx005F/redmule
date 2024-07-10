@@ -171,6 +171,7 @@ redmule_streamer #(
   .DW                    ( DW                    ),
   .`HCI_SIZE_PARAM(tcdm) ( `HCI_SIZE_PARAM(tcdm) ),
   .SERIAL_REPLICATION    ( 1                     ), // Always allow serial fault detection since it is cheap
+  .REQUEST_DEDUPLICATION ( USE_REDUNDANCY        ),
   .REDUCED_DATAPATH      ( 0                     )
 ) i_streamer (
   .clk_i          ( clk_i               ),
@@ -223,6 +224,7 @@ if (REP > 1) begin : gen_streamer_replica
     .DW                    ( DW                    ),
     .`HCI_SIZE_PARAM(tcdm) ( `HCI_SIZE_PARAM(tcdm) ),
     .SERIAL_REPLICATION    ( 0                     ),
+    .REQUEST_DEDUPLICATION ( USE_REDUNDANCY        ),
     .REDUCED_DATAPATH      ( 1                     )
   ) i_streamer (
     .clk_i          ( clk_i              ),
