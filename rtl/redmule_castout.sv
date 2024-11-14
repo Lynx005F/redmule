@@ -74,21 +74,12 @@ generate
       .src_fmt_i       ( src_format     ),
       .dst_fmt_i       ( dst_fmt_i      ),
       .int_fmt_i       ( INT_SRC        ),
-      .tag_i           ( '0             ),
       .mask_i          ( '0             ),
-      .aux_i           ( '0             ),
-      .in_valid_i      ( '1             ),
-      .in_ready_o      (                ),
-      .flush_i         ( '0             ),
       .result_o        ( result [i]     ),
       .status_o        (                ),
       .extension_bit_o (                ),
-      .tag_o           (                ),
       .mask_o          (                ),
-      .aux_o           (                ),
-      .out_valid_o     (                ),
-      .out_ready_i     ( '1             ),
-      .busy_o          (                )
+      .reg_enable_i    ( '1             )
     );
   
     assign  res [i*MIN_FMT+:MIN_FMT] = result[i][WIDTH-MIN_FMT-1:0];
