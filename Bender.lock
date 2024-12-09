@@ -16,8 +16,8 @@ packages:
     - common_verification
     - tech_cells_generic
   cluster_interconnect:
-    revision: 7d0a4f8acae71a583a6713cab5554e60b9bb8d27
-    version: 1.2.1
+    revision: 1284def6c0b7f7e9355eb093d00883ad9dead1b7
+    version: null
     source:
       Git: https://github.com/pulp-platform/cluster_interconnect.git
     dependencies:
@@ -31,8 +31,8 @@ packages:
     - common_verification
     - tech_cells_generic
   common_verification:
-    revision: 9c07fa860593b2caabd9b5681740c25fac04b878
-    version: 0.2.3
+    revision: fa2630f61666f61d9d78451c4d8b4d1ea403944e
+    version: 0.2.4
     source:
       Git: https://github.com/pulp-platform/common_verification.git
     dependencies: []
@@ -46,13 +46,14 @@ packages:
     - fpnew
     - tech_cells_generic
   fpnew:
-    revision: a8e0cba6dd50f357ece73c2c955d96efc3c6c315
+    revision: 8b4a203a3ea3fae02cc61010daf16b48e6aeef7d
     version: null
     source:
-      Git: https://github.com/pulp-platform/cvfpu.git
+      Git: https://github.com/Lynx005F/cvfpu.git
     dependencies:
     - common_cells
     - fpu_div_sqrt_mvp
+    - redundancy_cells
   fpu_div_sqrt_mvp:
     revision: 86e1f558b3c95e91577c41b2fc452c86b04e85ac
     version: 1.0.4
@@ -61,7 +62,7 @@ packages:
     dependencies:
     - common_cells
   hci:
-    revision: cbfa4a809e1e15dd55610ee4662969b297af7e64
+    revision: 1af613191246df6a91789b8b6ca77c3c54b256b5
     version: null
     source:
       Git: https://github.com/Lynx005F/hci.git
