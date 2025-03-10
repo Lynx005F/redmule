@@ -57,7 +57,8 @@ parameter hci_size_parameter_t `HCI_SIZE_PARAM(tcdm) = '0
   // Control signals
   input  cntrl_streamer_t        ctrl_i,
   output flgs_streamer_t         flags_o,
-  output logic                   serial_fault_o
+  output logic                   serial_fault_o,
+  output logic [6:0]             fault_probes_o
 );
 
 localparam int unsigned UW  = `HCI_SIZE_GET_UW(tcdm);
@@ -86,8 +87,11 @@ if (REQUEST_DEDUPLICATION) begin: gen_deduplicator
     .tcdm_target         ( tcdm_dupl ),
     .tcdm_initiator      ( tcdm )
 );
+  // Add ready signal to external fault detection since it could be buffered away by deduplicator
+  assign fault_probes_o[6] = tcdm_dupl.r_ready;
 end else begin: gen_no_deduplication
   hci_core_assign i_ldst_assign ( .tcdm_target (tcdm_dupl), .tcdm_initiator (tcdm) );
+  assign fault_probes_o[6] = 0;
 end
 
 /*************************** Store Channel: Serial Detection ****************************/
@@ -290,15 +294,16 @@ redmule_streamin #(
 ) i_x_stream_in (
   .clk_i,
   .rst_ni,
-  .test_mode_i  ( test_mode_i                   ),
-  .clear_i      ( clear_i                       ),
-  .enable_i     ( enable_i                      ),
-  .cast_i       ( cast                          ),
-  .stream_o     ( x_stream                      ),
-  .source       ( source[0]                     ),
-  .src_fmt_i    ( ctrl_i.input_cast_src_fmt     ),
-  .ctrl_i       ( ctrl_i.x_stream_source_ctrl   ),
-  .flags_o      ( flags_o.x_stream_source_flags )
+  .test_mode_i    ( test_mode_i                   ),
+  .clear_i        ( clear_i                       ),
+  .enable_i       ( enable_i                      ),
+  .cast_i         ( cast                          ),
+  .stream_o       ( x_stream                      ),
+  .source         ( source[0]                     ),
+  .src_fmt_i      ( ctrl_i.input_cast_src_fmt     ),
+  .ctrl_i         ( ctrl_i.x_stream_source_ctrl   ),
+  .flags_o        ( flags_o.x_stream_source_flags ),
+  .fault_probes_o ( fault_probes_o[1:0]           )
 );
 
 // Downcast X stream
@@ -320,15 +325,16 @@ redmule_streamin #(
 ) i_w_stream_in (
   .clk_i,
   .rst_ni,
-  .test_mode_i  ( test_mode_i                   ),
-  .clear_i      ( clear_i                       ),
-  .enable_i     ( enable_i                      ),
-  .cast_i       ( cast                          ),
-  .stream_o     ( w_stream                      ),
-  .source       ( source[1]                     ),
-  .src_fmt_i    ( ctrl_i.input_cast_src_fmt     ),
-  .ctrl_i       ( ctrl_i.w_stream_source_ctrl   ),
-  .flags_o      ( flags_o.w_stream_source_flags )
+  .test_mode_i    ( test_mode_i                   ),
+  .clear_i        ( clear_i                       ),
+  .enable_i       ( enable_i                      ),
+  .cast_i         ( cast                          ),
+  .stream_o       ( w_stream                      ),
+  .source         ( source[1]                     ),
+  .src_fmt_i      ( ctrl_i.input_cast_src_fmt     ),
+  .ctrl_i         ( ctrl_i.w_stream_source_ctrl   ),
+  .flags_o        ( flags_o.w_stream_source_flags ),
+  .fault_probes_o ( fault_probes_o[3:2]           )
 );
 
 // Downcast W stream
@@ -352,15 +358,16 @@ redmule_streamin #(
 ) i_y_stream_in (
   .clk_i,
   .rst_ni,
-  .test_mode_i  ( test_mode_i                   ),
-  .clear_i      ( clear_i                       ),
-  .enable_i     ( enable_i                      ),
-  .cast_i       ( cast                          ),
-  .stream_o     ( y_stream                      ),
-  .source       ( source[2]                     ),
-  .src_fmt_i    ( ctrl_i.input_cast_src_fmt     ),
-  .ctrl_i       ( ctrl_i.y_stream_source_ctrl   ),
-  .flags_o      ( flags_o.y_stream_source_flags )
+  .test_mode_i    ( test_mode_i                   ),
+  .clear_i        ( clear_i                       ),
+  .enable_i       ( enable_i                      ),
+  .cast_i         ( cast                          ),
+  .stream_o       ( y_stream                      ),
+  .source         ( source[2]                     ),
+  .src_fmt_i      ( ctrl_i.input_cast_src_fmt     ),
+  .ctrl_i         ( ctrl_i.y_stream_source_ctrl   ),
+  .flags_o        ( flags_o.y_stream_source_flags ),
+  .fault_probes_o ( fault_probes_o[5:4]           )
 );
 
 // Downcast Y stream

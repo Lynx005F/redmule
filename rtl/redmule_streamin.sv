@@ -46,7 +46,10 @@ module redmule_streamin
   input  fp_format_e                src_fmt_i,
 
   hci_core_intf.initiator           source,
-  hwpe_stream_intf_stream.source    stream_o
+  hwpe_stream_intf_stream.source    stream_o,
+
+  // Signal to externally vote over key faults
+  output logic [1:0]                fault_probes_o
 );
 
   hci_core_intf #(
@@ -132,15 +135,16 @@ module redmule_streamin
     .`HCI_SIZE_PARAM(tcdm) ( `HCI_SIZE_PARAM(source) ),
     .DIM_ENABLE_1H         ( 3'b111                  )
   ) i_stream_source (
-    .clk_i               ( clk_i       ),
-    .rst_ni              ( rst_ni      ),
-    .test_mode_i         ( test_mode_i ),
-    .clear_i             ( clear_i     ),
-    .enable_i            ( enable_i    ),
-    .tcdm                ( cast2source ),
-    .stream              ( stream_o    ),
-    .ctrl_i              ( ctrl_i      ),
-    .flags_o             ( flags_o     )
+    .clk_i               ( clk_i          ),
+    .rst_ni              ( rst_ni         ),
+    .test_mode_i         ( test_mode_i    ),
+    .clear_i             ( clear_i        ),
+    .enable_i            ( enable_i       ),
+    .tcdm                ( cast2source    ),
+    .stream              ( stream_o       ),
+    .ctrl_i              ( ctrl_i         ),
+    .flags_o             ( flags_o        ),
+    .fault_probes_o      ( fault_probes_o )
   );
 
 endmodule

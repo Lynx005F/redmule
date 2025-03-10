@@ -24,7 +24,7 @@ package:
 dependencies:
   cv32e40p          : { git: "https://github.com/pulp-platform/cv32e40p.git"          , rev: "pulpissimo-v4.1.0"                      }
   hwpe-stream       : { git: "https://github.com/Lynx005F/hwpe-stream.git"            , rev: a39dd676f7f4594910306dfcd190ef0ff94e4381 } # branch: itemm/redmule_features
-  hci               : { git: "https://github.com/Lynx005F/hci.git"                    , rev: 1af613191246df6a91789b8b6ca77c3c54b256b5 } # branch: itemm/fpr_features
+  hci               : { git: "https://github.com/Lynx005F/hci.git"                    , rev: 6043a25316a289bb800480833340fc23fceedd7c } # branch: itemm/fpr_features
   hwpe-ctrl         : { git: "https://github.com/Lynx005F/hwpe-ctrl.git"              , rev: 376c5da312d60cecd732336d23a0d0da2a1d0ea2 } # branch: itemm/redmule_features
   fpnew             : { git: "https://github.com/Lynx005F/cvfpu.git"                  , rev: 8b4a203a3ea3fae02cc61010daf16b48e6aeef7d } # branch: itemm/redundancy_rebase
   common_cells      : { git: "https://github.com/pulp-platform/common_cells.git"      , version: 1.21.0                               }

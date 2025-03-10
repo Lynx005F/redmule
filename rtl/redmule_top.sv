@@ -108,6 +108,8 @@ logic parallel_fault, serial_fault;
 logic x_fault, w_fault, z_fault;
 logic engine_fault, ctrl_fault, scheduler_fault, streamer_parallel_fault;
 
+logic [6:0] fault_probes;
+
 // Combine all fault outputs from parallel modules
 assign parallel_fault = x_fault | w_fault | z_fault |
      engine_fault | ctrl_fault | scheduler_fault |
@@ -191,12 +193,14 @@ redmule_streamer #(
   .ecc_errors_o   ( ecc_errors_streamer ),
   .ctrl_i         ( cntrl_streamer[0]   ),
   .flags_o        ( flgs_streamer[0]    ),
-  .serial_fault_o ( serial_fault        )
+  .serial_fault_o ( serial_fault        ),
+  .fault_probes_o ( fault_probes        )
 );
 
 
 if (REP > 1) begin : gen_streamer_replica
-  logic interface_hci_fault, streamer_flags_fault;
+  logic interface_hci_fault, streamer_flags_fault, streamer_probes_fault;
+  logic [6:0] replica_fault_probes;
 
   hci_core_intf #(
     `ifndef SYNTHESIS
@@ -276,11 +280,13 @@ if (REP > 1) begin : gen_streamer_replica
     .ecc_errors_o   ( /* Unused */       ),
     .ctrl_i         ( cntrl_streamer[1]  ),
     .flags_o        ( flgs_streamer[1]   ),
-    .serial_fault_o ( /* Unused */       )
+    .serial_fault_o ( /* Unused */       ),
+    .fault_probes_o ( replica_fault_probes )
   );
 
   assign streamer_flags_fault = flgs_streamer[0] != flgs_streamer[1];
-  assign streamer_parallel_fault = streamer_flags_fault | interface_hci_fault;
+  assign streamer_probes_fault = fault_probes != replica_fault_probes;
+  assign streamer_parallel_fault = streamer_flags_fault | interface_hci_fault | streamer_probes_fault;
 end else begin: gen_no_streamer_replica
   assign streamer_parallel_fault = 1'b0;
 end

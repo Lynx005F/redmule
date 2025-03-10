@@ -62,7 +62,7 @@ packages:
     dependencies:
     - common_cells
   hci:
-    revision: 1af613191246df6a91789b8b6ca77c3c54b256b5
+    revision: 6043a25316a289bb800480833340fc23fceedd7c
     version: null
     source:
       Git: https://github.com/Lynx005F/hci.git
